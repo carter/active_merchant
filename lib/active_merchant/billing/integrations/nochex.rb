@@ -1,6 +1,3 @@
-require File.dirname(__FILE__) + '/nochex/helper.rb'
-require File.dirname(__FILE__) + '/nochex/notification.rb'
-require File.dirname(__FILE__) + '/nochex/return.rb'
 
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
@@ -65,20 +62,24 @@ module ActiveMerchant #:nodoc:
       #     end
       #   end
       module Nochex
+        autoload :Return, File.dirname(__FILE__) + '/nochex/return.rb'
+        autoload :Helper, File.dirname(__FILE__) + '/nochex/helper.rb'
+        autoload :Notification, File.dirname(__FILE__) + '/nochex/notification.rb'
+        
        
         mattr_accessor :service_url
-        self.service_url = 'https://www.nochex.com/nochex.dll/checkout'
+        self.service_url = 'https://secure.nochex.com'
 
         mattr_accessor :notification_confirmation_url
         self.notification_confirmation_url = 'https://www.nochex.com/nochex.dll/apc/apc'
 
         # Simply a convenience method that returns a new 
         # ActiveMerchant::Billing::Integrations::Nochex::Notification
-        def self.notification(post)
+        def self.notification(post, options = {})
           Notification.new(post)
         end  
         
-        def self.return(query_string)
+        def self.return(query_string, options = {})
           Return.new(query_string)
         end
       end

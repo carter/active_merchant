@@ -21,7 +21,7 @@ module ActiveMerchant #:nodoc:
       self.homepage_url = 'http://www.paymentexpress.com/'
       self.display_name = 'PaymentExpress'
       
-      URL = 'https://www.paymentexpress.com/pxpost.aspx'
+      URL = 'https://sec.paymentexpress.com/pxpost.aspx'
       
       APPROVED = '1'
       
@@ -44,26 +44,15 @@ module ActiveMerchant #:nodoc:
       
       # Funds are transferred immediately.
       def purchase(money, payment_source, options = {})
-        
-        credit_card = payment_source if payment_source.respond_to?(:number)
-        
-        if credit_card        
-          options[:credit_card] = credit_card
-        else
-          options[:token]       = payment_source
-        end
-        
-        request = build_purchase_or_authorization_request(money, options)
+        request = build_purchase_or_authorization_request(money, payment_source, options)
         commit(:purchase, request)      
       end
       
       # NOTE: Perhaps in options we allow a transaction note to be inserted
       # Verifies that funds are available for the requested card and amount and reserves the specified amount.
       # See: http://www.paymentexpress.com/technical_resources/ecommerce_nonhosted/pxpost.html#Authcomplete
-      def authorize(money, credit_card, options = {})
-        options[:credit_card] = credit_card
-
-        request = build_purchase_or_authorization_request(money, options)
+      def authorize(money, payment_source, options = {})
+        request = build_purchase_or_authorization_request(money, payment_source, options)
         commit(:authorization, request)
       end
       
@@ -75,11 +64,16 @@ module ActiveMerchant #:nodoc:
       end
       
       # Refund funds to the card holder
-      def credit(money, identification, options = {})
+      def refund(money, identification, options = {})
         requires!(options, :description)
         
         request = build_capture_or_credit_request(money, identification, options)                                            
         commit(:credit, request)
+      end
+
+      def credit(money, identification, options = {})
+        deprecated CREDIT_DEPRECATION_MESSAGE
+        refund(money, identification, options)
       end
       
       # token based billing
@@ -95,17 +89,19 @@ module ActiveMerchant #:nodoc:
       
       private
       
-      def build_purchase_or_authorization_request(money, options)
+      def build_purchase_or_authorization_request(money, payment_source, options)
         result = new_transaction      
-        
-        returning result do |r|
-          add_credit_card(r, options[:credit_card]) if options[:credit_card]
-          add_billing_token(r, options[:token])     if options[:token]
-        
-          add_amount(r, money, options)
-          add_invoice(r, options)
-          add_address_verification_data(r, options)
+
+        if payment_source.is_a?(String)
+          add_billing_token(result, payment_source)
+        else
+          add_credit_card(result, payment_source)
         end
+        
+        add_amount(result, money, options)
+        add_invoice(result, options)
+        add_address_verification_data(result, options)
+        result
       end
       
       def build_capture_or_credit_request(money, identification, options)
@@ -114,18 +110,15 @@ module ActiveMerchant #:nodoc:
         add_amount(result, money, options)
         add_invoice(result, options)
         add_reference(result, identification)
-        
         result
       end
       
       def build_token_request(credit_card, options)
         result = new_transaction
-          
-        returning result do |r|
-          add_credit_card(r, credit_card)
-          add_amount(r, 100, options) #need to make an auth request for $1
-          add_token_request(r, options)
-        end
+        add_credit_card(result, credit_card)
+        add_amount(result, 100, options) #need to make an auth request for $1
+        add_token_request(result, options)
+        result
       end
       
       def add_credentials(xml)
@@ -179,8 +172,8 @@ module ActiveMerchant #:nodoc:
         address = options[:billing_address] || options[:address]
         return if address.nil?
         
-        xml.add_element("EnableAvsData").text = 0
-        xml.add_element("AvsAction").text = 0
+        xml.add_element("EnableAvsData").text = 1
+        xml.add_element("AvsAction").text = 1
         
         xml.add_element("AvsStreetAddress").text = address[:address1]
         xml.add_element("AvsPostCode").text = address[:zip]
@@ -199,7 +192,7 @@ module ActiveMerchant #:nodoc:
         response = parse( ssl_post(URL, request.to_s) )
         
         # Return a response
-        PaymentExpressResponse.new(response[:success] == APPROVED, response[:response_text], response,
+        PaymentExpressResponse.new(response[:success] == APPROVED, response[:card_holder_help_text], response,
           :test => response[:test_mode] == '1',
           :authorization => response[:dps_txn_ref]
         )

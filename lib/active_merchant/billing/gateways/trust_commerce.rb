@@ -101,6 +101,9 @@ module ActiveMerchant #:nodoc:
         "failtoprocess" => "The bank servers are offline and unable to authorize transactions"
       }
       
+      TEST_LOGIN = 'TestMerchant'
+      TEST_PASSWORD = 'password'
+      
       self.money_format = :cents
       self.supported_cardtypes = [:visa, :master, :discover, :american_express, :diners_club, :jcb]
       self.supported_countries = ['US']
@@ -137,7 +140,8 @@ module ActiveMerchant #:nodoc:
       end
       
       def test?
-        @options[:test] || super
+        @options[:login] == TEST_LOGIN &&
+          @options[:password] == TEST_PASSWORD || @options[:test] || super
       end
       
       # authorize() is the first half of the preauth(authorize)/postauth(capture) model. The TC API docs call this
@@ -183,15 +187,20 @@ module ActiveMerchant #:nodoc:
         commit('postauth', parameters)
       end
       
-      # credit() allows you to return money to a card that was previously billed. You need to supply the amount, in cents or a money object,
+      # refund() allows you to return money to a card that was previously billed. You need to supply the amount, in cents or a money object,
       # that you want to refund, and a TC transid for the transaction that you are refunding.
-      def credit(money, identification, options = {})  
+      def refund(money, identification, options = {})  
         parameters = {
           :amount => amount(money),
           :transid => identification
         }
                                                   
         commit('credit', parameters)
+      end
+
+      def credit(money, identification, options = {})  
+        deprecated CREDIT_DEPRECATION_MESSAGE
+        refund(money, identification, options)
       end
       
       # void() clears an existing authorization and releases the reserved fund

@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + '/../../test_helper'
+require 'test_helper'
 
 class BogusModuleTest < Test::Unit::TestCase
   include ActiveMerchant::Billing::Integrations
   
   def test_notification_method
-    assert_instance_of Bogus::Notification, Bogus.notification('name=cody')
+    assert_instance_of Bogus::Notification, Bogus.notification('name=cody', {})
   end
 
   def test_service_url
@@ -15,6 +15,10 @@ class BogusModuleTest < Test::Unit::TestCase
   end
   
   def test_return_method
-    assert_instance_of Bogus::Return, Bogus.return('name=cody')
+    assert_instance_of Bogus::Return, Bogus.return('name=cody', {})
+  end
+
+  def teardown
+    Bogus.service_url = 'http://www.bogus.com'
   end
 end 

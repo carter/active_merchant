@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + '/../../test_helper'
+require 'test_helper'
 
 class PaypalModuleTest < Test::Unit::TestCase
   include ActiveMerchant::Billing::Integrations
   
   def test_notification_method
-    assert_instance_of Paypal::Notification, Paypal.notification('name=cody')
+    assert_instance_of Paypal::Notification, Paypal.notification('name=cody', {})
   end
 
   def test_test_mode
@@ -23,6 +23,6 @@ class PaypalModuleTest < Test::Unit::TestCase
   end
   
   def test_return_method
-    assert_instance_of Paypal::Return, Paypal.return('name=cody')
+    assert_instance_of Paypal::Return, Paypal.return('name=cody', {})
   end
 end 
