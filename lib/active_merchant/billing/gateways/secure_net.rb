@@ -70,16 +70,16 @@ module ActiveMerchant #:nodoc:
         commit(build_sale_or_authorization_request(creditcard, options, :auth_capture), money)
       end
 
-      def capture(money, creditcard, authorization, options = {})
-        commit(build_capture_request(authorization, creditcard, options, :prior_auth_capture), money)
+      def capture(money, authorization, options = {})
+        commit(build_capture_request(authorization, options, :prior_auth_capture), money)
       end
 
-      def void(money, creditcard, authorization, options = {})
-        commit(build_void_request(authorization, creditcard, options, :void), money)
+      def void(money, authorization, options = {})
+        commit(build_void_request(authorization, options, :void), money)
       end
 
-      def credit(money, creditcard, authorization, options = {})
-        commit(build_credit_request(authorization, creditcard, options, :credit), money)
+      def credit(money, authorization, options = {})
+        commit(build_credit_request(authorization, options, :credit), money)
       end
 
       private
@@ -140,10 +140,10 @@ module ActiveMerchant #:nodoc:
         xml.target!
       end
 
-      def build_capture_request(authorization, creditcard, options, action)
+      def build_capture_request(authorization, options, action)
         xml = Builder::XmlMarkup.new
 
-        add_credit_card(xml, creditcard)
+        add_partial_credit_card(xml, options)
         xml.tag! 'CODE', TRANSACTIONS[action]
         add_customer_data(xml, options)
         xml.tag! 'DCI', 0 # No duplicate checking will be done, except for ORDERID
@@ -161,11 +161,11 @@ module ActiveMerchant #:nodoc:
         xml.target!
       end
 
-      def build_credit_request(authorization, creditcard, options, action)
+      def build_credit_request(authorization, options, action)
 #        requires!(options, :card_number)
         xml = Builder::XmlMarkup.new
 
-        add_credit_card(xml, creditcard)
+        add_partial_credit_card(xml, options)
         xml.tag! 'CODE', TRANSACTIONS[action]
         add_customer_data(xml, options)
         xml.tag! 'DCI', 0 # No duplicate checking will be done, except for ORDERID
@@ -183,10 +183,10 @@ module ActiveMerchant #:nodoc:
         xml.target!
       end
 
-      def build_void_request(authorization, creditcard, options, action)
+      def build_void_request(authorization, options, action)
         xml = Builder::XmlMarkup.new
 
-        add_credit_card(xml, creditcard)
+        add_partial_credit_card(xml, options)
         xml.tag! 'CODE', TRANSACTIONS[action]
         add_customer_data(xml, options)
         xml.tag! 'DCI', 0 # No duplicate checking will be done, except for ORDERID
@@ -213,6 +213,14 @@ module ActiveMerchant #:nodoc:
           xml.tag! 'CARDNUMBER', creditcard.number
           xml.tag! 'EXPDATE', expdate(creditcard)
         end
+      end
+
+      def add_partial_credit_card(xml, options)
+        xml.tag!("CARD") do
+#          xml.tag! 'CARDCODE', ''
+	  xml.tag! 'CARDNUMBER', options[:card_number]	
+#          xml.tag! 'EXPDATE', ''
+	end
       end
 
       def expdate(creditcard)

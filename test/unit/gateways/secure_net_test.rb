@@ -64,7 +64,7 @@ class SecureNetTest < Test::Unit::TestCase
   def test_successful_capture
     @gateway.expects(:ssl_post).returns(successful_capture_response)
 
-    assert response = @gateway.capture(@amount, @credit_card, '12533132', @options)
+    assert response = @gateway.capture(@amount, '12533132', @options)
     assert_instance_of Response, response
     assert_success response
 
@@ -75,7 +75,7 @@ class SecureNetTest < Test::Unit::TestCase
   def test_failed_capture
     @gateway.expects(:ssl_post).returns(failed_capture_response)
 
-    assert response = @gateway.capture(@amount, @credit_card, '12533132', @options)
+    assert response = @gateway.capture(@amount, '12533132', @options)
     assert_instance_of Response, response
     assert_failure response
 
@@ -85,7 +85,7 @@ class SecureNetTest < Test::Unit::TestCase
 
   def test_successful_void
     @gateway.expects(:ssl_post).returns(successful_void_response)
-    assert response = @gateway.void(@amount, @credit_card, '12533174', @options)
+    assert response = @gateway.void(@amount, '12533174', @options)
     assert_success response
     assert_equal 'Approved', response.message
   end
@@ -93,21 +93,21 @@ class SecureNetTest < Test::Unit::TestCase
   def test_failed_void
     @gateway.expects(:ssl_post).returns(failed_void_response)
 
-    assert response = @gateway.void(@amount, @credit_card, '123456', @options)
+    assert response = @gateway.void(@amount, '123456', @options)
     assert_failure response
     assert_equal 'TRANSACTION ID DOES NOT EXIST FOR VOID', response.message
   end
 
   def test_successful_credit
     @gateway.expects(:ssl_post).returns(successful_credit_response)
-    assert response = @gateway.credit(@amount, @credit_card, '123456789', @options)
+    assert response = @gateway.credit(@amount, '123456789', @options)
     assert_success response
     assert_equal 'Approved', response.message
   end
 
   def test_failed_credit
     @gateway.expects(:ssl_post).returns(failed_credit_response)
-    assert response = @gateway.credit(@amount, @credit_card, '12533185', @options)
+    assert response = @gateway.credit(@amount, '12533185', @options)
     assert_failure response
     assert_equal 'CREDIT CANNOT BE COMPLETED ON AN UNSETTLED TRANSACTION', response.message
   end
