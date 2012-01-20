@@ -46,7 +46,8 @@ module ActiveMerchant #:nodoc:
 
 #      TEST_URL = 'https://certify.securenet.com/api/Gateway.svc'
       TEST_URL = 'https://certify.securenet.com/API/gateway.svc/webHttp/ProcessTransaction'
-      LIVE_URL = 'https://gateway.securenet.com/api/Gateway.svc'
+      LIVE_URL = 'https://gateway.securenet.com/API/gateway.svc/webHttp/ProcessTransaction'
+#      LIVE_URL = 'https://gateway.securenet.com/api/Gateway.svc'
 
       APPROVED, DECLINED, ERROR = 1, 2, 3
 
@@ -85,7 +86,7 @@ module ActiveMerchant #:nodoc:
       private
       def commit(request, money)
         xml = build_request(request, money)
-        data = ssl_post(TEST_URL, xml, "Content-Type" => "text/xml")
+        data = ssl_post(test? ? TEST_URL : LIVE_URL, xml, "Content-Type" => "text/xml")
         response = parse(data)
 
         test_mode = test?
@@ -124,7 +125,7 @@ module ActiveMerchant #:nodoc:
         xml.tag! 'ORDERID', options[:order_id]#'30'.to_i.to_s#'22'# @options[:order_id]
         xml.tag! 'OVERRIDE_FROM', 0 # Docs say not required, but doesn't work without it
         xml.tag! 'RETAIL_LANENUM', '0' # Docs say string, but it's an integer!?
-        xml.tag! 'TEST', 'TRUE'
+        xml.tag! 'TEST', 'TRUE' if test?
         xml.tag! 'TOTAL_INSTALLMENTCOUNT', 0
         xml.tag! 'TRANSACTION_SERVICE', 0
 
@@ -154,7 +155,7 @@ module ActiveMerchant #:nodoc:
         xml.tag! 'OVERRIDE_FROM', 0 # Docs say not required, but doesn't work without it
         xml.tag! 'REF_TRANSID', authorization
         xml.tag! 'RETAIL_LANENUM', '0' # Docs say string, but it's an integer!?
-        xml.tag! 'TEST', 'TRUE'
+        xml.tag! 'TEST', 'TRUE' if test?
         xml.tag! 'TOTAL_INSTALLMENTCOUNT', 0
         xml.tag! 'TRANSACTION_SERVICE', 0
 
@@ -176,7 +177,7 @@ module ActiveMerchant #:nodoc:
         xml.tag! 'OVERRIDE_FROM', 0 # Docs say not required, but doesn't work without it
         xml.tag! 'REF_TRANSID', authorization
         xml.tag! 'RETAIL_LANENUM', '0' # Docs say string, but it's an integer!?
-        xml.tag! 'TEST', 'TRUE'
+        xml.tag! 'TEST', 'TRUE' if test?
         xml.tag! 'TOTAL_INSTALLMENTCOUNT', 0
         xml.tag! 'TRANSACTION_SERVICE', 0
 
@@ -197,7 +198,7 @@ module ActiveMerchant #:nodoc:
         xml.tag! 'OVERRIDE_FROM', 0 # Docs say not required, but doesn't work without it
         xml.tag! 'REF_TRANSID', authorization
         xml.tag! 'RETAIL_LANENUM', '0' # Docs say string, but it's an integer!?
-        xml.tag! 'TEST', 'TRUE'
+        xml.tag! 'TEST', 'TRUE' if test?
         xml.tag! 'TOTAL_INSTALLMENTCOUNT', 0
         xml.tag! 'TRANSACTION_SERVICE', 0
 
