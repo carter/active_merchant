@@ -60,6 +60,7 @@ module ActiveMerchant #:nodoc:
       def initialize(options = {})
         requires!(options, :login, :password)
         @options = options
+        ActiveMerchant::Billing::Base.mode = :test if options[:test]
         super
       end
 
