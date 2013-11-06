@@ -42,6 +42,8 @@ module ActiveMerchant #:nodoc:
       self.supported_cardtypes = [:visa, :master, :american_express, :discover]
       self.homepage_url = 'http://www.securenet.com/'
       self.display_name = 'SecureNet'
+      self.ssl_version = :SSLv3
+
 #      self.wiredump_device = STDOUT
 
 #      TEST_URL = 'https://certify.securenet.com/api/Gateway.svc'
