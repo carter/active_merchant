@@ -554,10 +554,19 @@ module ActiveMerchant #:nodoc:
       end
 
       def build_create_customer_profile_transaction_request(xml, options)
+        options[:extra_options] ||= {}
+        options[:extra_options].merge!('x_test_request' => 'TRUE') if @options[:test]
+        
         add_transaction(xml, options[:transaction])
-        xml.tag!('extraOptions', "x_test_request=TRUE") if @options[:test]
+        xml.tag!('extraOptions') do
+          xml.cdata!(format_extra_options(options[:extra_options]))
+        end unless options[:extra_options].blank?
         
         xml.target!
+      end
+
+      def format_extra_options(options)
+        options.map{ |k, v| "#{k}=#{v}" }.join('&') unless options.nil?
       end
       
       def build_validate_customer_payment_profile_request(xml, options)
